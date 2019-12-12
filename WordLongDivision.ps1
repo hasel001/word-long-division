@@ -1,3 +1,8 @@
+#Word Long Division v 1.0
+#This program takes the inputs of a particular kind of word puzzle
+#and solves it. The puzzle type it solves is based on a
+#Word Arithmetic puzzle from Penny Dell Puzzles.
+
 #query the user for the full set of letters, the dividend, the divisor, the quotient, and the remainder strings
 $fullSet = Read-Host -Prompt 'Input the ten-letter string'
 $divd= Read-Host -Prompt 'Input the dividend string'
@@ -16,26 +21,26 @@ $remav=0;
 
 #Build indices for divd divr quot rema
 #start by calculating the position of $divd[0] on $fullset
-[int[]] =$divdIndex=($fullSet | Select-String $divd[0]).Matches.Index;
-for ($x=1; $x -lt $divd.length; $x++) {
+$divdIndex=@(1..$divd.Length);
+for ($x=0; $x -lt $divd.Length; $x++) {
   #then, for each from 1 to n-1 members of divd, append the index value to the index
-  $divdIndex=$divdIndex.Add(($fullSet | Select-String $divd[$x]).Matches.Index);
+  $divdIndex[$x]=($fullSet | Select-String $divd[$x]).Matches.Index;
 }
 
 #repeat for the other 3 strings
-[int[]] $divrIndex=($fullSet | Select-String $divr[0]).Matches.Index;
-for ($x=1; $x -lt $divr.length; $x++) {
-  $divrIndex.Add(($fullSet | Select-String $divr[$x]).Matches.Index);
+$divrIndex=@(1..$divr.length);
+for ($x=0; $x -lt $divr.length; $x++) {
+  $divrIndex[$x]=($fullSet | Select-String $divr[$x]).Matches.Index;
 }
 
-[int[]] $quotIndex=($fullSet | Select-String $quot[0]).Matches.Index;
-for ($x=1; $x -lt $quot.length; $x++) {
-  $quotIndex.Add(($fullSet | Select-String $quot[$x]).Matches.Index);
+$quotIndex=@(1..$quot.length);
+for ($x=0; $x -lt $quot.length; $x++) {
+  $quotIndex[$x]=($fullSet | Select-String $quot[$x]).Matches.Index;
 }
 
-[int[]] $remaIndex=($fullset | Select-String $rema[0]).Matches.Index;
-for ($x=1; $x -lt $rema.length; $x++) {
-  $remaIndex.Add(($fullSet | Select-String $rema[$x]).Matches.Index);
+$remaIndex=@(1..$rema.length);
+for ($x=0; $x -lt $rema.length; $x++) {
+  $remaIndex[$x]=($fullSet | Select-String $rema[$x]).Matches.Index;
 }
 
 # start the loop for the first variable going 0 to 9
@@ -94,42 +99,43 @@ for ($aa=0; $aa -lt 10; $aa++) {
                                 } else {
 
                                   for ($jj=0; $jj -lt 10; $jj++) {
-                                    if (($jj -eq $ii) -OR ($jj -eq $hh) -OR ($jj -eq $gg) -OR ($jj -eq $ff) -OR ($jj -eq $ee) -OR ($ff -eq $dd) -OR ($jj -eq $cc) -OR ($jj -eq $bb) -OR ($jj -eq $aa)) {
+                                    if (($jj -eq $ii) -OR ($jj -eq $hh) -OR ($jj -eq $gg) -OR ($jj -eq $ff) -OR ($jj -eq $ee) -OR ($jj -eq $dd) -OR ($jj -eq $cc) -OR ($jj -eq $bb) -OR ($jj -eq $aa)) {
                                       continue;
                                     } else {
                                       
                                       # find the index of this iteration
-                                      compIndex = $aa,$bb,$cc,$dd,$ee,$ff,$gg,$hh,$ii,$jj;
+                                      $compIndex = $aa,$bb,$cc,$dd,$ee,$ff,$gg,$hh,$ii,$jj;
                                       
                                       # then compute the value of the quotient as follows:
                                       # summing over i>N-1, take the products of compIndex[quotIndex[i]] and multiply by 10^i
                                       $quotv=0;
                                       for ($x=($quot.Length)-1; $x -ge 0; $x--) {
-                                        $quotv=$quotv+($compIndex[$quotIndex[$x]])*([[math]]Power(10,$quot.Length-($x+1)));
+                                        $quotv=$quotv+($compIndex[$quotIndex[$x]])*[math]::Pow(10,$quot.Length-($x+1));
                                       }
 
                                       #repeat for the remainder, the divisor, and the dividend
                                       $remav=0;
                                       for ($x=($rema.Length)-1; $x -ge 0; $x--) {
-                                        $remav=$remav+($compIndex[$remaIndex[$x]])*([[math]]Power(10,$rema.Length-($x+1)));
+                                        $remav=$remav+($compIndex[$remaIndex[$x]])*[math]::Pow(10,$rema.Length-($x+1));
                                       }
                                       
                                       $divrv=0;
                                       for ($x=($divr.Length)-1; $x -ge 0; $x--) {
-                                        $divrv=$divrv+($compIndex[$divrIndex[$x]])*([[math]]Power(10,$divr.Length-($x+1)));
+                                        $divrv=$divrv+($compIndex[$divrIndex[$x]])*[math]::Pow(10,$divr.Length-($x+1));
                                       }
                                       
                                       $divdv=0;
                                       for ($x=($divd.Length)-1; $x -ge 0; $x--) {
-                                        $divdv=$divdv+($compIndex[$divdIndex[$x]])*([[math]]Power(10,$divd.Length-($x+1)));
+                                        $divdv=$divdv+($compIndex[$divdIndex[$x]])*[math]::Pow(10,$divd.Length-($x+1));
                                       }
                                       
                                       #if the solution is valid, the quotient times the divisor should equal the dividend minus the remainder
-                                      $product = $divrv * $divdv;                                     
+                                      $product = $divrv * $quotv;                                     
 
                                       # compare and report the values
+
                                       if ($product -eq ($divdv-$remav)) {
-                                        Write-Output ($divr + "= " + $divrv + ";   " + $quot + "= " + $quotv + " ;   " + $divd + "= " + $divdv);
+                                        Write-Output ($fullSet + "= " + $compIndex);
                                       }
                                     } #end jjelse
                                   } #end forjj
